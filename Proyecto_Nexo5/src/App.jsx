@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './App.css';
 
 const perfil = {
   nombre: 'Juan Pérez',
@@ -6,7 +7,7 @@ const perfil = {
   centro: 'Centro de Biotecnología Agropecuaria (Mosquera)',
   programa: 'Análisis y Desarrollo de Software (ADSO)',
   ficha: '3409609',
-  jornada: 'Nocturna',
+  jornada: 'Mixta',
   habilidades: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS']
 };
 
@@ -90,45 +91,48 @@ export default function App() {
   const botonesNavegacion = navegacion.map(([pestana, texto]) => (
     <button
       key={pestana}
+      className={`nav-button ${activeTab === pestana ? 'is-active' : ''}`}
       onClick={() => setActiveTab(pestana)}
     >
-      [{texto}]
+      {texto}
     </button>
   ));
 
   return (
-    <div>
+    <div className="app-shell">
       {/* Barra de Navegación Superior */}
-      <header>
-        <div>
-          <div>
-            <div>SENA</div>
-            <span>[ SENA COLAB ]</span>
+      <header className="app-header">
+        <div className="header-inner">
+          <div className="brand-block">
+            <div className="brand-badge">SENA</div>
+            <span className="brand-name">SENA NEXO</span>
           </div>
-          <nav>
+          <nav className="main-nav">
             {botonesNavegacion}
             <button
+              className={`nav-button profile-button ${activeTab === 'perfil' ? 'is-active' : ''}`}
               onClick={() => setActiveTab('perfil')}
             >
-              [Mi Perfil ({perfil.nombre.split(' ')[0]})]
+              Mi Perfil ({perfil.nombre.split(' ')[0]})
             </button>
           </nav>
         </div>
       </header>
 
       {/* Contenido Principal */}
-      <main>
+      <main className="page-content">
 
         {/* PESTAÑA 1: DIRECTORIO DE TALENTOS */}
         {activeTab === 'directorio' && (
-          <div>
+          <div className="panel-wrap">
             {/* Buscador Inteligente / Wireframe G */}
-            <div>
-              <h2>
+            <div className="panel search-panel">
+              <h2 className="section-title">
                  BUSCADOR DE TALENTO TECNOLÓGICO
               </h2>
-              <div>
+              <div className="filters-grid">
                 <select
+                  className="field"
                   value={filtros.centro}
                   onChange={(e) => actualizarFiltro('centro', e.target.value)}
                 >
@@ -139,6 +143,7 @@ export default function App() {
                 </select>
 
                 <select
+                  className="field"
                   value={filtros.programa}
                   onChange={(e) => actualizarFiltro('programa', e.target.value)}
                 >
@@ -149,47 +154,44 @@ export default function App() {
                 </select>
 
                 <input
+                  className="field"
                   type="text"
                   placeholder="Habilidad (ej. Python, React)"
                   value={filtros.habilidad}
                   onChange={(e) => actualizarFiltro('habilidad', e.target.value)}
                 />
               </div>
-              <div>
-                <button
-                >
+              <div className="actions-row">
+                <button className="primary-button">
                    Buscar Talentos
                 </button>
               </div>
             </div>
 
             {/* Resultados */}
-            <div>
-              <h3>👥 RESULTADOS ({talentosFiltrados.length})</h3>
-              <div>
+            <div className="panel results-panel">
+              <h3 className="results-title"><span className="mini-icon">•</span> RESULTADOS ({talentosFiltrados.length})</h3>
+              <div className="cards-grid">
                 {talentosFiltrados.map(talento => (
-                  <div key={talento.id}>
-                    <div>
-                      <div>
-                        <div>
-                          {talento.nombre.charAt(0)}
-                        </div>
-                        <div>
-                          <h4>{talento.nombre}</h4>
-                          <p> {talento.programa} - Ficha {talento.ficha}</p>
-                          <p> {talento.centro}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <span>🛠️ Habilidades:</span>
-                        <div>
-                          {talento.habilidades.map((h, i) => (
-                            <span key={i}>{h}</span>
-                          ))}
-                        </div>
+                  <div key={talento.id} className="talent-card">
+                    <div className="card-head">
+                      <div className="avatar">{talento.nombre.charAt(0)}</div>
+                      <div className="talent-meta">
+                        <h4>{talento.nombre}</h4>
+                        <p> {talento.programa} - Ficha {talento.ficha}</p>
+                        <p> {talento.centro}</p>
                       </div>
                     </div>
+                    <div className="skill-block">
+                        <span className="label-row"><span className="mini-icon">◦</span> Habilidades:</span>
+                        <div className="tags-row">
+                          {talento.habilidades.map((h, i) => (
+                            <span className="tag" key={i}>{h}</span>
+                          ))}
+                        </div>
+                    </div>
                     <a
+                      className="wa-link"
                       href={`https://wa.me/${talento.whatsapp}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -205,27 +207,29 @@ export default function App() {
 
         {/* PESTAÑA 2: TABLERO DE PROYECTOS (MATCHMAKING) */}
         {activeTab === 'proyectos' && (
-          <div>
-            <div>
-              <h2> Tablero de Proyectos Colaborativos (HU03)</h2>
-              <p>Publica solicitudes de equipo para tus proyectos formativos. (Regla RN01: Máximo 3 proyectos activos por aprendiz).</p>
+          <div className="panel-wrap">
+            <div className="panel project-panel">
+              <h2 className="section-title"> Tablero de Proyectos Colaborativos (HU03)</h2>
+              <p className="section-subtitle">Publica solicitudes de equipo para tus proyectos formativos. (Regla RN01: Máximo 3 proyectos activos por aprendiz).</p>
 
               {/* Mensajes de Alerta / Hallazgos del Taller */}
               {mensajeAlerta && (
-                <div>
+                <div className={`alert-message ${mensajeAlerta.tipo}`}>
                   {mensajeAlerta.texto}
                 </div>
               )}
 
-              <form onSubmit={manejarPublicacionProyecto}>
-                <div>
+              <form className="project-form" onSubmit={manejarPublicacionProyecto}>
+                <div className="form-row">
                   <input
+                    className="field"
                     type="text"
                     placeholder="Título del Proyecto"
                     value={nuevoProyecto.titulo}
                     onChange={(e) => actualizarProyecto('titulo', e.target.value)}
                   />
                   <input
+                    className="field"
                     type="text"
                     placeholder="Habilidad técnica requerida (ej. React, Python)"
                     value={nuevoProyecto.habilidad}
@@ -233,12 +237,14 @@ export default function App() {
                   />
                 </div>
                 <textarea
+                  className="field textarea"
                   placeholder="Descripción de la necesidad del equipo o perfil que buscas..."
                   rows="3"
                   value={nuevoProyecto.descripcion}
                   onChange={(e) => actualizarProyecto('descripcion', e.target.value)}
                 ></textarea>
                 <button
+                  className="primary-button"
                   type="submit"
                 >
                    Publicar Proyecto de Aula
@@ -247,25 +253,26 @@ export default function App() {
             </div>
 
             {/* Listado de Proyectos */}
-            <div>
-              <h3> Proyectos Buscando Equipo ({proyectos.length})</h3>
-              <div>
+            <div className="panel results-panel">
+              <h3 className="results-title"> Proyectos Buscando Equipo ({proyectos.length})</h3>
+              <div className="cards-grid">
                 {proyectos.map(proj => (
-                  <div key={proj.id}>
-                    <div>
+                  <div key={proj.id} className="project-card">
+                    <div className="project-head">
                       <div>
                         <h4>{proj.titulo}</h4>
-                        <span>{proj.estado}</span>
-                      </div>
-                      <p>Liderado por: <span>{proj.autor}</span></p>
-                      <p>{proj.descripcion}</p>
-                      <div>
-                        {proj.habilidades.map((h, i) => (
-                          <span key={i}>Req: {h}</span>
-                        ))}
+                        <span className="project-status">{proj.estado}</span>
                       </div>
                     </div>
+                    <p className="project-author">Liderado por: <span>{proj.autor}</span></p>
+                    <p>{proj.descripcion}</p>
+                    <div className="tags-row">
+                        {proj.habilidades.map((h, i) => (
+                          <span className="tag tag-muted" key={i}>Req: {h}</span>
+                        ))}
+                    </div>
                     <button
+                      className="secondary-button"
                       onClick={() => alert(`Solicitud de postulación enviada a ${proj.autor}. ¡Pronto se pondrán en contacto contigo!`)}
                     >
                        Unirme al Equipo
@@ -279,21 +286,21 @@ export default function App() {
 
         {/* PESTAÑA 3: ETAPA PRODUCTIVA Y EGRESADOS */}
         {activeTab === 'productiva' && (
-          <div>
-            <div>
-              <h2> Radar de Etapa Productiva y Red de Egresados</h2>
-              <p>Espacio para orientación, consejos de contratación de aprendizaje y mentores egresados.</p>
+          <div className="panel-wrap">
+            <div className="panel">
+              <h2 className="section-title"> Radar de Etapa Productiva y Red de Egresados</h2>
+              <p className="section-subtitle">Espacio para orientación, consejos de contratación de aprendizaje y mentores egresados.</p>
 
-              <div>
-                <div>
+              <div className="info-grid">
+                <div className="info-card">
                   <h4> Tips de Entrevista SENA</h4>
                   <p>Recomendaciones para destacar en tus entrevistas con empresas patrocinadoras y portales de empleo.</p>
                 </div>
-                <div>
+                <div className="info-card">
                   <h4> Red de Mentores Egresados</h4>
                   <p>Conecta con ex-aprendices que ya laboran en el sector tecnológico y de agrobiotecnología regional.</p>
                 </div>
-                <div>
+                <div className="info-card">
                   <h4> Convocatorias Abiertas</h4>
                   <p>Enlaces y guías simplificadas para postulación a contratos de aprendizaje vigentes.</p>
                 </div>
@@ -304,46 +311,48 @@ export default function App() {
 
         {/* PESTAÑA 4: MI PERFIL */}
         {activeTab === 'perfil' && (
-          <div>
-            <h2>👤 Mi Perfil Académico (HU01 / RF02)</h2>
-            <div>
-              <div>
-                <div>
-                  <label>Nombre Completo</label>
-                  <input type="text" value={perfil.nombre} readOnly />
+          <div className="panel-wrap">
+            <div className="panel profile-panel">
+              <h2 className="section-title"><span className="mini-icon">◌</span> Mi Perfil Académico (HU01 / RF02)</h2>
+              <div className="profile-grid">
+                <div className="form-row compact-row">
+                  <div className="field-group">
+                    <label>Nombre Completo</label>
+                    <input className="field" type="text" value={perfil.nombre} readOnly />
+                  </div>
+                  <div className="field-group">
+                    <label>Rol en la plataforma</label>
+                    <input className="field" type="text" value={perfil.rol} readOnly />
+                  </div>
                 </div>
-                <div>
-                  <label>Rol en la plataforma</label>
-                  <input type="text" value={perfil.rol} readOnly />
-                </div>
-              </div>
 
-              <div>
-                <label>Centro de Formación</label>
-                <input type="text" value={perfil.centro} readOnly />
-              </div>
+                <div className="field-group">
+                  <label>Centro de Formación</label>
+                  <input className="field" type="text" value={perfil.centro} readOnly />
+                </div>
 
-              <div>
-                <div>
-                  <label>Programa</label>
-                  <input type="text" value={perfil.programa} readOnly />
+                <div className="form-row compact-row">
+                  <div className="field-group">
+                    <label>Programa</label>
+                    <input className="field" type="text" value={perfil.programa} readOnly />
+                  </div>
+                  <div className="field-group">
+                    <label>Número de Ficha</label>
+                    <input className="field" type="text" value={perfil.ficha} readOnly />
+                  </div>
+                  <div className="field-group">
+                    <label>Jornada</label>
+                    <input className="field" type="text" value={perfil.jornada} readOnly />
+                  </div>
                 </div>
-                <div>
-                  <label>Número de Ficha</label>
-                  <input type="text" value={perfil.ficha} readOnly />
-                </div>
-                <div>
-                  <label>Jornada</label>
-                  <input type="text" value={perfil.jornada} readOnly />
-                </div>
-              </div>
 
-              <div>
-                <label>Mis Habilidades Técnicas (Etiquetas)</label>
-                <div>
-                  {perfil.habilidades.map(habilidad => (
-                    <span key={habilidad}>{habilidad}</span>
-                  ))}
+                <div className="field-group">
+                  <label>Mis Habilidades Técnicas (Etiquetas)</label>
+                  <div className="tags-row">
+                    {perfil.habilidades.map(habilidad => (
+                      <span className="tag" key={habilidad}>{habilidad}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -353,9 +362,9 @@ export default function App() {
       </main>
 
       {/* Pie de página institucional */}
-      <footer>
-        <p>SENA Colab • Centro de Biotecnología Agropecuaria (Regional Cundinamarca)</p>
-        <p>Ficha 3409609 • Proyecto Formativo - Taller 02</p>
+      <footer className="app-footer">
+        <p>SENA NEXO • Centro de Biotecnología Agropecuaria (Regional Cundinamarca)</p>
+        <p>Ficha 3409609 • Proyecto Formativo - Taller Formativo</p>
       </footer>
     </div>
   );
