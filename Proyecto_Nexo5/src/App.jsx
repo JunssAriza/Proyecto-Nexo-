@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
-const perfil = {
-  nombre: 'Juan Pérez',
-  rol: 'Aprendiz',
-  centro: 'Centro de Biotecnología Agropecuaria (Mosquera)',
-  programa: 'Análisis y Desarrollo de Software (ADSO)',
-  ficha: '3409609',
-  jornada: 'Mixta',
-  habilidades: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS']
-};
+async function solicitarApi(ruta, opciones = {}) {
+  const respuesta = await fetch(ruta, {
+    ...opciones,
+    headers: {
+      ...(opciones.body ? { 'Content-Type': 'application/json' } : {}),
+      ...opciones.headers
+    }
+  });
+  const resultado = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(resultado.error || `La solicitud falló (${respuesta.status}).`);
+  }
+
+  return resultado;
+}
 
 const talentos = [
   { id: 1, nombre: 'María Pérez', centro: 'Centro de Biotecnología Agropecuaria (Mosquera)', programa: 'ADSO', ficha: '2670123', habilidades: ['React', 'DB', 'JavaScript'], whatsapp: '573001112233' },
@@ -30,12 +37,214 @@ const navegacion = [
 
 const proyectoVacio = { titulo: '', descripcion: '', habilidad: '' };
 
+function AuthScreen({ modo, setModo, mensaje, onRegister, onLogin }) {
+  const [email, setEmail] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [perfil, setPerfil] = useState({
+    nombre: '',
+    rol: 'Aprendiz',
+    centro: '',
+    programa: '',
+    ficha: '',
+    jornada: '',
+    habilidades: ''
+  });
+  const camposPerfil = [
+    ['nombre', 'Nombre completo'],
+    ['rol', 'Rol en la plataforma'],
+    ['centro', 'Centro de formación'],
+    ['programa', 'Programa'],
+    ['ficha', 'Número de ficha'],
+    ['jornada', 'Jornada']
+  ];
+
+  function enviarFormulario(evento) {
+    evento.preventDefault();
+    if (modo === 'login') {
+      onLogin({ email, contrasena });
+      return;
+    }
+
+    onRegister({
+      email,
+      contrasena,
+      perfil: {
+        ...perfil,
+        nombre: perfil.nombre.trim(),
+        habilidades: perfil.habilidades.split(',').map(habilidad => habilidad.trim()).filter(Boolean)
+      }
+    });
+  }
+
+  return (
+    <div className="app-shell">
+      <main className="auth-layout">
+        <section className="panel auth-card">
+          <div className="brand-block auth-brand">
+            <div className="brand-badge">SENA</div>
+            <span className="brand-name">SENA NEXO</span>
+          </div>
+          <h1 className="section-title">{modo === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1>
+          <p className="section-subtitle">
+            {modo === 'login' ? 'Ingresa con el correo y la contraseña de tu cuenta.' : 'Registra tus datos para crear tu perfil académico.'}
+          </p>
+          {mensaje && (
+            <div className={`alert-message ${mensaje.startsWith('No se pudo') || mensaje.startsWith('Correo o') || mensaje.startsWith('Ya existe') ? 'error' : 'exito'}`} role="status">
+              {mensaje}
+            </div>
+          )}
+          <form className="auth-form" onSubmit={enviarFormulario}>
+            {modo === 'register' && (
+              <>
+                {camposPerfil.map(([campo, etiqueta]) => (
+                  <div className="field-group" key={campo}>
+                    <label htmlFor={`register-${campo}`}>{etiqueta}</label>
+                    <input
+                      id={`register-${campo}`}
+                      className="field"
+                      value={perfil[campo]}
+                      onChange={evento => setPerfil({ ...perfil, [campo]: evento.target.value })}
+                      required
+                    />
+                  </div>
+                ))}
+                <div className="field-group">
+                  <label htmlFor="register-skills">Habilidades (separadas por comas)</label>
+                  <input
+                    id="register-skills"
+                    className="field"
+                    value={perfil.habilidades}
+                    onChange={evento => setPerfil({ ...perfil, habilidades: evento.target.value })}
+                    placeholder="React, JavaScript, SQL"
+                  />
+                </div>
+              </>
+            )}
+            <div className="field-group">
+              <label htmlFor="auth-email">Correo electrónico</label>
+              <input id="auth-email" className="field" type="email" autoComplete="email" value={email} onChange={evento => setEmail(evento.target.value)} required />
+            </div>
+            <div className="field-group">
+              <label htmlFor="auth-password">Contraseña</label>
+              <input id="auth-password" className="field" type="password" autoComplete={modo === 'login' ? 'current-password' : 'new-password'} minLength="8" value={contrasena} onChange={evento => setContrasena(evento.target.value)} required />
+              {modo === 'register' && <small>Debe tener al menos 8 caracteres.</small>}
+            </div>
+            <button className="primary-button" type="submit">
+              {modo === 'login' ? 'Iniciar sesión' : 'Registrar usuario'}
+            </button>
+          </form>
+          <p className="auth-switch">
+            {modo === 'login' ? '¿Aún no tienes cuenta?' : '¿Ya tienes una cuenta?'}{' '}
+            <button className="text-button" type="button" onClick={() => setModo(modo === 'login' ? 'register' : 'login')}>
+              {modo === 'login' ? 'Regístrate' : 'Inicia sesión'}
+            </button>
+          </p>
+          <p className="storage-note">
+            Las cuentas y contraseñas se guardan en el servidor de la aplicación.
+          </p>
+        </section>
+      </main>
+      <footer className="app-footer">
+        <p>SENA NEXO • Centro de Biotecnología Agropecuaria (Regional Cundinamarca)</p>
+      </footer>
+    </div>
+  );
+}
+
 export default function App() {
+  const [usuarioActual, setUsuarioActual] = useState(null);
+  const [cargandoSesion, setCargandoSesion] = useState(true);
+  const [modoAutenticacion, setModoAutenticacion] = useState('login');
+  const [mensajeAutenticacion, setMensajeAutenticacion] = useState('');
   const [activeTab, setActiveTab] = useState('directorio');
   const [filtros, setFiltros] = useState({ centro: '', programa: '', habilidad: '' });
   const [proyectos, setProyectos] = useState(proyectosIniciales);
   const [nuevoProyecto, setNuevoProyecto] = useState(proyectoVacio);
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
+  const perfil = usuarioActual?.perfil;
+  const [perfilEditado, setPerfilEditado] = useState(null);
+  const [mensajePerfil, setMensajePerfil] = useState('');
+
+  useEffect(() => {
+    solicitarApi('/api/me')
+      .then(({ usuario }) => {
+        setUsuarioActual(usuario);
+        setPerfilEditado(usuario ? {
+          ...usuario.perfil,
+          habilidades: usuario.perfil.habilidades.join(', ')
+        } : null);
+      })
+      .catch(error => setMensajeAutenticacion(`No se pudo conectar con el servidor: ${error.message}`))
+      .finally(() => setCargandoSesion(false));
+  }, []);
+
+  async function manejarRegistro(datos) {
+    try {
+      await solicitarApi('/api/register', {
+        method: 'POST',
+        body: JSON.stringify(datos)
+      });
+      setModoAutenticacion('login');
+      setMensajeAutenticacion('Cuenta creada correctamente. Inicia sesión con tu correo y contraseña.');
+    } catch (error) {
+      setMensajeAutenticacion(error.message);
+    }
+  }
+
+  async function manejarInicioSesion(datos) {
+    try {
+      const { usuario } = await solicitarApi('/api/login', {
+        method: 'POST',
+        body: JSON.stringify(datos)
+      });
+      setUsuarioActual(usuario);
+      setPerfilEditado({ ...usuario.perfil, habilidades: usuario.perfil.habilidades.join(', ') });
+      setMensajeAutenticacion('');
+      setMensajePerfil('');
+    } catch (error) {
+      setMensajeAutenticacion(error.message);
+    }
+  }
+
+  async function manejarCierreSesion() {
+    try {
+      await solicitarApi('/api/logout', { method: 'POST' });
+      setUsuarioActual(null);
+      setPerfilEditado(null);
+      setModoAutenticacion('login');
+      setMensajeAutenticacion('');
+      setActiveTab('directorio');
+    } catch (error) {
+      setMensajePerfil(`No se pudo cerrar la sesión: ${error.message}`);
+    }
+  }
+
+  function manejarCambioPerfil(campo, valor) {
+    setPerfilEditado({ ...perfilEditado, [campo]: valor });
+  }
+
+  async function guardarPerfil(evento) {
+    evento.preventDefault();
+    const perfilGuardado = {
+      ...perfilEditado,
+      nombre: perfilEditado.nombre.trim(),
+      habilidades: perfilEditado.habilidades
+        .split(',')
+        .map(habilidad => habilidad.trim())
+        .filter(Boolean)
+    };
+    try {
+      const { usuario } = await solicitarApi('/api/profile', {
+        method: 'PUT',
+        body: JSON.stringify(perfilGuardado)
+      });
+      setUsuarioActual(usuario);
+      setPerfilEditado({ ...usuario.perfil, habilidades: usuario.perfil.habilidades.join(', ') });
+      setMensajePerfil('Perfil actualizado correctamente.');
+    } catch (error) {
+      setMensajePerfil(error.message);
+    }
+  }
 
   const talentosFiltrados = talentos.filter(talento => {
     const coincideCentro = talento.centro.toLowerCase().includes(filtros.centro.toLowerCase());
@@ -46,7 +255,6 @@ export default function App() {
 
     return coincideCentro && coincidePrograma && coincideHabilidad;
   });
-
   function manejarPublicacionProyecto(evento) {
     evento.preventDefault();
 
@@ -88,6 +296,22 @@ export default function App() {
     setNuevoProyecto({ ...nuevoProyecto, [campo]: valor });
   }
 
+  if (cargandoSesion) {
+    return <main className="auth-layout"><section className="panel auth-card">Conectando con el servidor…</section></main>;
+  }
+
+  if (!perfil) {
+    return (
+      <AuthScreen
+        modo={modoAutenticacion}
+        setModo={setModoAutenticacion}
+        mensaje={mensajeAutenticacion}
+        onRegister={manejarRegistro}
+        onLogin={manejarInicioSesion}
+      />
+    );
+  }
+
   const botonesNavegacion = navegacion.map(([pestana, texto]) => (
     <button
       key={pestana}
@@ -114,6 +338,9 @@ export default function App() {
               onClick={() => setActiveTab('perfil')}
             >
               Mi Perfil ({perfil.nombre.split(' ')[0]})
+            </button>
+            <button className="secondary-button" type="button" onClick={manejarCierreSesion}>
+              Cerrar sesión
             </button>
           </nav>
         </div>
@@ -314,47 +541,52 @@ export default function App() {
           <div className="panel-wrap">
             <div className="panel profile-panel">
               <h2 className="section-title"><span className="mini-icon">◌</span> Mi Perfil Académico (HU01 / RF02)</h2>
-              <div className="profile-grid">
+              <p className="section-subtitle">Correo de acceso: {usuarioActual.email}</p>
+              {mensajePerfil && (
+                <div className={`alert-message ${mensajePerfil.startsWith('No se pudo') ? 'error' : 'exito'}`}>
+                  {mensajePerfil}
+                </div>
+              )}
+              <form className="profile-grid" onSubmit={guardarPerfil}>
                 <div className="form-row compact-row">
                   <div className="field-group">
                     <label>Nombre Completo</label>
-                    <input className="field" type="text" value={perfil.nombre} readOnly />
+                    <input className="field" type="text" value={perfilEditado.nombre} onChange={e => manejarCambioPerfil('nombre', e.target.value)} required />
                   </div>
                   <div className="field-group">
                     <label>Rol en la plataforma</label>
-                    <input className="field" type="text" value={perfil.rol} readOnly />
+                    <input className="field" type="text" value={perfilEditado.rol} onChange={e => manejarCambioPerfil('rol', e.target.value)} required />
                   </div>
                 </div>
 
                 <div className="field-group">
                   <label>Centro de Formación</label>
-                  <input className="field" type="text" value={perfil.centro} readOnly />
+                  <input className="field" type="text" value={perfilEditado.centro} onChange={e => manejarCambioPerfil('centro', e.target.value)} required />
                 </div>
 
                 <div className="form-row compact-row">
                   <div className="field-group">
                     <label>Programa</label>
-                    <input className="field" type="text" value={perfil.programa} readOnly />
+                    <input className="field" type="text" value={perfilEditado.programa} onChange={e => manejarCambioPerfil('programa', e.target.value)} required />
                   </div>
                   <div className="field-group">
                     <label>Número de Ficha</label>
-                    <input className="field" type="text" value={perfil.ficha} readOnly />
+                    <input className="field" type="text" value={perfilEditado.ficha} onChange={e => manejarCambioPerfil('ficha', e.target.value)} required />
                   </div>
                   <div className="field-group">
                     <label>Jornada</label>
-                    <input className="field" type="text" value={perfil.jornada} readOnly />
+                    <input className="field" type="text" value={perfilEditado.jornada} onChange={e => manejarCambioPerfil('jornada', e.target.value)} required />
                   </div>
                 </div>
 
                 <div className="field-group">
-                  <label>Mis Habilidades Técnicas (Etiquetas)</label>
-                  <div className="tags-row">
-                    {perfil.habilidades.map(habilidad => (
-                      <span className="tag" key={habilidad}>{habilidad}</span>
-                    ))}
-                  </div>
+                  <label htmlFor="profile-skills">Habilidades técnicas (separadas por comas)</label>
+                  <input id="profile-skills" className="field" type="text" value={perfilEditado.habilidades} onChange={e => manejarCambioPerfil('habilidades', e.target.value)} />
                 </div>
-              </div>
+                <div className="profile-actions">
+                  <button className="primary-button" type="submit">Guardar perfil</button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -364,7 +596,7 @@ export default function App() {
       {/* Pie de página institucional */}
       <footer className="app-footer">
         <p>SENA NEXO • Centro de Biotecnología Agropecuaria (Regional Cundinamarca)</p>
-        <p>Ficha 3409609 • Proyecto Formativo - Taller Formativo</p>
+        <p>Ficha {perfil.ficha} • Proyecto Formativo - Taller Formativo</p>
       </footer>
     </div>
   );

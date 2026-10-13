@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node backend/dev.js",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "start": "node backend/server.js",
+    "preview": "node backend/server.js"
   },
   "dependencies": {
     "react": "^19.2.8",

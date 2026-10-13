@@ -401,6 +401,70 @@ textarea.field {
   margin-top: 1rem;
 }
 
+.auth-layout {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.4rem;
+  flex: 1;
+}
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-brand {
+  margin-bottom: 0.5rem;
+}
+
+.auth-card .section-title,
+.auth-card .section-subtitle,
+.auth-card .alert-message,
+.auth-switch,
+.storage-note {
+  margin-bottom: 0;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form .primary-button {
+  width: 100%;
+}
+
+.auth-switch {
+  text-align: center;
+  color: var(--muted);
+}
+
+.text-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--green-deep);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.storage-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .mini-icon {
   display: inline-flex;
   color: var(--green-deep);
