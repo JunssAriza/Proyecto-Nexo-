@@ -322,6 +322,29 @@ export default function App() {
     </button>
   ));
 
+  const encabezados = {
+    directorio: {
+      etiqueta: 'Comunidad SENA · Cundinamarca',
+      titulo: 'Conecta talento.\nImpulsa proyectos.',
+      descripcion: 'Encuentra personas con las habilidades que tu próximo proyecto necesita.',
+    },
+    proyectos: {
+      etiqueta: 'Colaboración · Proyectos formativos',
+      titulo: 'Las buenas ideas\nencuentran equipo.',
+      descripcion: 'Comparte lo que estás construyendo y reúne el talento para hacerlo realidad.',
+    },
+    productiva: {
+      etiqueta: 'Orientación · Oportunidades',
+      titulo: 'Tu siguiente paso\nempieza aquí.',
+      descripcion: 'Recursos para acercarte a la etapa productiva y conectar con egresados.',
+    },
+    perfil: {
+      etiqueta: 'Tu espacio · Perfil académico',
+      titulo: 'Muestra lo que\nsabes hacer.',
+      descripcion: 'Mantén tu perfil actualizado para que la comunidad pueda encontrarte.',
+    },
+  };
+
   return (
     <div className="app-shell">
       {/* Barra de Navegación Superior */}
@@ -348,15 +371,21 @@ export default function App() {
 
       {/* Contenido Principal */}
       <main className="page-content">
+        <section className="workspace-heading">
+          <span className="workspace-eyebrow text-xs font-bold uppercase tracking-widest text-nexo-lime">
+            {encabezados[activeTab].etiqueta}
+          </span>
+          <h1>{encabezados[activeTab].titulo}</h1>
+          <p>{encabezados[activeTab].descripcion}</p>
+        </section>
 
         {/* PESTAÑA 1: DIRECTORIO DE TALENTOS */}
         {activeTab === 'directorio' && (
           <div className="panel-wrap">
             {/* Buscador Inteligente / Wireframe G */}
             <div className="panel search-panel">
-              <h2 className="section-title">
-                 BUSCADOR DE TALENTO TECNOLÓGICO
-              </h2>
+                <h2 className="section-title">Filtra por perfil</h2>
+                <p className="section-subtitle">Explora aprendices por centro, programa o habilidad.</p>
               <div className="filters-grid">
                 <select
                   className="field"
@@ -397,7 +426,7 @@ export default function App() {
 
             {/* Resultados */}
             <div className="panel results-panel">
-              <h3 className="results-title"><span className="mini-icon">•</span> RESULTADOS ({talentosFiltrados.length})</h3>
+              <h3 className="results-title">Personas destacadas <span>({talentosFiltrados.length})</span></h3>
               <div className="cards-grid">
                 {talentosFiltrados.map(talento => (
                   <div key={talento.id} className="talent-card">
@@ -427,6 +456,9 @@ export default function App() {
                     </a>
                   </div>
                 ))}
+                {talentosFiltrados.length === 0 && (
+                  <p className="empty-state">No encontramos perfiles con esos filtros. Prueba con otros términos.</p>
+                )}
               </div>
             </div>
           </div>
@@ -436,8 +468,8 @@ export default function App() {
         {activeTab === 'proyectos' && (
           <div className="panel-wrap">
             <div className="panel project-panel">
-              <h2 className="section-title"> Tablero de Proyectos Colaborativos (HU03)</h2>
-              <p className="section-subtitle">Publica solicitudes de equipo para tus proyectos formativos. (Regla RN01: Máximo 3 proyectos activos por aprendiz).</p>
+              <h2 className="section-title">Publica una oportunidad</h2>
+              <p className="section-subtitle">Cuéntale a la comunidad qué estás creando y a quién necesitas. Puedes tener hasta 3 proyectos activos.</p>
 
               {/* Mensajes de Alerta / Hallazgos del Taller */}
               {mensajeAlerta && (
@@ -515,7 +547,7 @@ export default function App() {
         {activeTab === 'productiva' && (
           <div className="panel-wrap">
             <div className="panel">
-              <h2 className="section-title"> Radar de Etapa Productiva y Red de Egresados</h2>
+              <h2 className="section-title">Recursos para avanzar</h2>
               <p className="section-subtitle">Espacio para orientación, consejos de contratación de aprendizaje y mentores egresados.</p>
 
               <div className="info-grid">
@@ -540,7 +572,7 @@ export default function App() {
         {activeTab === 'perfil' && (
           <div className="panel-wrap">
             <div className="panel profile-panel">
-              <h2 className="section-title"><span className="mini-icon">◌</span> Mi Perfil Académico (HU01 / RF02)</h2>
+              <h2 className="section-title">Información académica</h2>
               <p className="section-subtitle">Correo de acceso: {usuarioActual.email}</p>
               {mensajePerfil && (
                 <div className={`alert-message ${mensajePerfil.startsWith('No se pudo') ? 'error' : 'exito'}`}>
